@@ -1,0 +1,399 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Heart, Wind, Smile, Users, MessageCircle, Clock, Award, ChevronLeft,
+  BookOpen, CheckCircle2, XCircle, Trophy, RotateCcw, ShieldAlert,
+  Hand, Star, Sparkles, UserPlus, Volume2, Trash2, Book, Footprints,
+  Coffee, Sun, Moon, ShieldCheck, HeartHandshake, Search
+} from 'lucide-react';
+
+// カテゴリーごとのイラストコンポーネント
+const SkillIllustration = ({ category }) => {
+  switch (category) {
+    case "ぜったいだめなこと":
+      return (
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          <div className="absolute inset-0 bg-red-100 rounded-full animate-pulse"></div>
+          <ShieldAlert className="text-red-600 relative z-10" size={56} />
+        </div>
+      );
+    case "心のコントロール":
+      return (
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          <div className="absolute inset-0 bg-blue-100 rounded-full"></div>
+          <Wind className="text-blue-500 relative z-10 animate-bounce" size={48} />
+        </div>
+      );
+    case "コミュニケーション":
+      return (
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          <div className="absolute inset-0 bg-green-100 rounded-full"></div>
+          <MessageCircle className="text-green-500 relative z-10" size={48} />
+        </div>
+      );
+    case "友だちとのルール":
+      return (
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          <div className="absolute inset-0 bg-yellow-100 rounded-full"></div>
+          <Users className="text-yellow-600 relative z-10" size={48} />
+        </div>
+      );
+    case "学校のせいかつ":
+      return (
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          <div className="absolute inset-0 bg-orange-100 rounded-full"></div>
+          <Book className="text-orange-600 relative z-10" size={48} />
+        </div>
+      );
+    default:
+      return (
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          <div className="absolute inset-0 bg-indigo-100 rounded-full"></div>
+          <Star className="text-indigo-500 relative z-10" size={48} fill="currentColor" />
+        </div>
+      );
+  }
+};
+
+// 全100項目のデータ
+const SKILLS_DATA = [
+  // --- ぜったいだめなこと (いじめ・らんぼう・暴言) ---
+  { id: 1, category: "ぜったいだめなこと", text: "人を たたいたり、けったり する らんぼうは ぜったいに しません。", quiz: { q: "おこった時に 友だちを 叩（たた）いても いいかな？", options: ["一回だけなら いい", "ぜったいに だめ", "相手が 悪いなら いい"], answer: 1 } },
+  { id: 2, category: "ぜったいだめなこと", text: "「死ね」や「きもい」など、相手の 心を きずつける言葉は 言いません。", quiz: { q: "ひどい言葉を 言っても いい時は あるかな？", options: ["おこった時だけ いい", "ぜったいに 言わない", "みんなが 言うなら いい"], answer: 1 } },
+  { id: 3, category: "ぜったいだめなこと", text: "みんなで 一人の子を 無視（むし）したり、なかまはずれに しません。", quiz: { q: "「あの子と 遊ばないでおこう」と さそわれたら？", options: ["「だめだよ」と言う", "いっしょに むしをする", "だまって 見ている"], answer: 0 } },
+  { id: 4, category: "ぜったいだめなこと", text: "人の 物を かくしたり、わざと こわしたり しません。", quiz: { q: "ムカついたから 相手の 物を かくすのは？", options: ["やってはいけない", "少しなら いい", "あとで 返せば いい"], answer: 0 } },
+  { id: 5, category: "ぜったいだめなこと", text: "こまっている子を 見て わらったり、ばかにしたり しません。", quiz: { q: "友だちが しっぱいして 泣いていたら？", options: ["わらってあげる", "「だいじょうぶ？」と言う", "知らんぷりをする"], answer: 1 } },
+  { id: 6, category: "ぜったいだめなこと", text: "いじめを 見つけたら、すぐに 先生や 大人の人に おしえます。", quiz: { q: "友だちが いやなことを されていたら？", options: ["見ていないことにする", "すぐに 大人に 言う", "いっしょに やる"], answer: 1 } },
+  { id: 7, category: "ぜったいだめなこと", text: "「きもい」「デブ」など、見た目の 悪口を 言いません。", quiz: { q: "相手の 見た目のことを 言うのは？", options: ["本当のことなら いい", "ぜったいに 言わない", "わらわせるためなら いい"], answer: 1 } },
+  { id: 8, category: "ぜったいだめなこと", text: "だれかが 悪口を 言っていても、自分は さんか しません。", quiz: { q: "みんなで 悪口を 言って 盛り上がっていたら？", options: ["いっしょに 言う", "その場を はなれる", "もっと ひどいことを 言う"], answer: 1 } },
+  { id: 9, category: "ぜったいだめなこと", text: "いやなことを されたら、手を 出さずに 言葉で「やめて」と言います。", quiz: { q: "嫌（いや）なことを された時、どうする？", options: ["やり返す", "言葉で「やめて」と言う", "大声で 泣く"], answer: 1 } },
+  { id: 10, category: "ぜったいだめなこと", text: "相手に「やめて」と 言われたら、すぐに行動を やめます。", quiz: { q: "「やめて」と言われたのに つづけるのは？", options: ["いじめに なる", "遊びなら いい", "一回だけなら いい"], answer: 0 } },
+  { id: 11, category: "ぜったいだめなこと", text: "人の お金を 取ったり、おごらせたり しません。", quiz: { q: "「これ買ってよ」と 友だちに 言うのは？", options: ["なかよしなら いい", "ぜったいに だめ", "安いものなら いい"], answer: 1 } },
+  { id: 12, category: "ぜったいだめなこと", text: "うそを ついて、人を だましたり しません。", quiz: { q: "自分が 怒られないために うそをつくのは？", options: ["いいこと", "やってはいけないこと", "たまになら いい"], answer: 1 } },
+  { id: 13, category: "ぜったいだめなこと", text: "友だちの 服（ふく）を 引っぱったり、脱（ぬ）がそうと しません。", quiz: { q: "ふざけて 友だちの 服を 引っぱるのは？", options: ["ぜったいに だめ", "遊びなら いい", "少しなら いい"], answer: 0 } },
+  { id: 14, category: "ぜったいだめなこと", text: "無理（むり）やり 何か（食べものや 遊び）を させません。", quiz: { q: "嫌（いや）がっている子に むりやり させるのは？", options: ["いいこと", "やってはいけない", "みんなで やるなら いい"], answer: 1 } },
+  { id: 15, category: "ぜったいだめなこと", text: "「のろま」「ばか」など、人を 下に 見る言葉を 使いません。", quiz: { q: "足が おそい子に「のろま」と言うのは？", options: ["心を きずつけるので だめ", "早いから いい", "応援（おうえん）なら いい"], answer: 0 } },
+  { id: 16, category: "ぜったいだめなこと", text: "人の 失敗（しっぱい）を、いつまでも 言いふらしません。", quiz: { q: "友だちが おもらしを してしまったら？", options: ["みんなに おしえる", "だまって おく", "わらう"], answer: 1 } },
+  { id: 17, category: "ぜったいだめなこと", text: "わざと 足を 引っかけたり、とおせんぼを しません。", quiz: { q: "廊下（ろうか）で 通せんぼを するのは？", options: ["楽しい 遊び", "危（あぶ）ないし 嫌なこと", "あいさつ"], answer: 1 } },
+  { id: 18, category: "ぜったいだめなこと", text: "人の コンプレックス（気にしていること）を 言いません。", quiz: { q: "友だちが 気にしていることを 言うのは？", options: ["おもしろい", "ぜったいに だめ", "教えてあげること"], answer: 1 } },
+  { id: 19, category: "ぜったいだめなこと", text: "「いじめ」を 見て見ぬふりをするのも、よくないことです。", quiz: { q: "いじめを 見つけたら どうする？", options: ["しらんぷり", "先生や 親に おしえる", "自分も いっしょに やる"], answer: 1 } },
+  { id: 20, category: "ぜったいだめなこと", text: "ネットや ゲームの 中でも、悪口は ぜったいに 書きません。", quiz: { q: "ゲームの チャットで 悪口を 書くのは？", options: ["顔が見えないから いい", "ぜったいに だめ", "相手が 先に 言ったなら いい"], answer: 1 } },
+
+  // --- 心のコントロール (15 items) ---
+  { id: 21, category: "心のコントロール", text: "イライラしたら、はなから すって 口から ゆっくり はきます。", quiz: { q: "イライラした時、どうするのが いい？", options: ["物を 投げる", "深こきゅうを する", "叫（さけ）ぶ"], answer: 1 } },
+  { id: 22, category: "心のコントロール", text: "カッとなったら、心の中で 10まで 数えて まちます。", quiz: { q: "おこって 手が 出そうな 時は？", options: ["10まで 数える", "すぐに 言い返す", "たたく"], answer: 0 } },
+  { id: 23, category: "心のコントロール", text: "ケンカに なりそうな 時は、いったん その場を はなれます。", quiz: { q: "ケンカに なりそうな 時、どうする？", options: ["もっと 近づく", "その場を はなれる", "先に たたく"], answer: 1 } },
+  { id: 24, category: "心のコントロール", text: "しっぱいした時は、かくさずに 本当のことを 話します。", quiz: { q: "物を こわしてしまったら？", options: ["だまって おく", "本当のことを 話す", "人の せいに する"], answer: 1 } },
+  { id: 25, category: "心のコントロール", text: "言いわけをせず、次は どうすれば よいか 考えて 行動します。", quiz: { q: "怒られた時、どうするのが かっこいい？", options: ["言いわけを する", "次は どうするか 考える", "ふてくされる"], answer: 1 } },
+  { id: 26, category: "心のコントロール", text: "「自分が されたら どう思うか」を いちど 考えます。", quiz: { q: "何かを する前に 考えることは？", options: ["「楽しいかな？」", "「自分が されたら どうかな？」", "「だれが 見ているかな？」"], answer: 1 } },
+  { id: 27, category: "心のコントロール", text: "「つづけていたら どうなっていたか」を そうぞうします。", quiz: { q: "危ない遊びを つづけていたら？", options: ["楽しくなる", "けがを するかもしれない", "上手になる"], answer: 1 } },
+  { id: 28, category: "心のコントロール", text: "負けても おこらず「次は がんばるぞ」と 切りかえます。", quiz: { q: "ゲームで 負けた 時、どうする？", options: ["泣きわめく", "「つぎ がんばる」と言う", "コントローラーを 投げる"], answer: 1 } },
+  { id: 29, category: "心のコントロール", text: "いやなことが あっても、物に 当たったり しません。", quiz: { q: "ムカついたから 机を けるのは？", options: ["すっきりする", "やってはいけない", "力持ちに見える"], answer: 1 } },
+  { id: 30, category: "心のコントロール", text: "「どうして そうしたの？」と、決めつけずに 理由を聞きます。", quiz: { q: "友だちが ぶつかってきたら？", options: ["おこる", "理由（りゆう）を 聞く", "突き飛ばす"], answer: 1 } },
+  { id: 31, category: "心のコントロール", text: "自分の 気持ちを 言葉にする 練習を します。", quiz: { q: "悲しい時、どうする？", options: ["だまって 怒る", "「悲しい」と言葉で 言う", "暴（あば）れる"], answer: 1 } },
+  { id: 32, category: "心のコントロール", text: "やる気が 出ない時は、少しだけ 休んでから はじめます。", quiz: { q: "宿題（しゅくだい）が 面倒（めんどう）な時は？", options: ["ずっと やらない", "少し休んでから やる", "泣く"], answer: 1 } },
+  { id: 33, category: "心のコントロール", text: "相手が おこっていても、つられて おこらないように します。", quiz: { q: "相手が おこって 言い返してきたら？", options: ["もっと 大きな声で 怒る", "静かに 聞く", "叩（たた）く"], answer: 1 } },
+  { id: 34, category: "心のコントロール", text: "うらやましくなっても、いじわるを しません。", quiz: { q: "友だちが いい物を 持っていたら？", options: ["いじわるする", "「いいなー」と言うだけにする", "盗（ぬす）む"], answer: 1 } },
+  { id: 35, category: "心のコントロール", text: "しっぱいしても「どんまい」と 自分を おうえんします。", quiz: { q: "しっぱいした 自分に なんて言う？", options: ["「ばかだな」", "「つぎ がんばろう」", "「もう やめる」"], answer: 1 } },
+
+  // --- コミュニケーション (25 items) ---
+  { id: 36, category: "コミュニケーション", text: "自分から 先に 元気よく「おはよう」と あいさつします。", quiz: { q: "先生や 友だちに 会ったら？", options: ["自分から あいさつする", "だまって 見る", "逃（に）げる"], answer: 0 } },
+  { id: 37, category: "コミュニケーション", text: "お話は、相手が 言い終わるまで だまって 聞きます。", quiz: { q: "人が お話をしている 時は？", options: ["とちゅうで 話す", "最後まで 聞く", "よそ見をする"], answer: 1 } },
+  { id: 38, category: "コミュニケーション", text: "何かを してもらったら「ありがとう」と すぐに言います。", quiz: { q: "鉛筆（えんぴつ）を かしてもらった時は？", options: ["だまって 返す", "「ありがとう」と言う", "「遅いよ」と言う"], answer: 1 } },
+  { id: 39, category: "コミュニケーション", text: "悪いことを したら「ごめんね」と すなおに あやまります。", quiz: { q: "友だちを きずつけてしまったら？", options: ["言いわけを する", "すなおに あやまる", "無視（むし）をする"], answer: 1 } },
+  { id: 40, category: "コミュニケーション", text: "相手の 目や 顔を見て、自分の 気持ちを つたえます。", quiz: { q: "お話をする時に 大切なことは？", options: ["地面（じめん）を見る", "相手の 顔を見る", "テレビを見ながら話す"], answer: 1 } },
+  { id: 41, category: "コミュニケーション", text: "小さなことでも「ありがとう」と 感謝（かんしゃ）を 伝えます。", quiz: { q: "プリントを 渡（わた）して もらったら？", options: ["「ありがとう」と言う", "何も 言わない", "「おい」と言う"], answer: 0 } },
+  { id: 42, category: "コミュニケーション", text: "自分たちで かいけつできない時は、すぐに 大人に そうだんします。", quiz: { q: "困（こま）ったことが あったら？", options: ["がまんする", "先生や 大人に そうだんする", "あきらめる"], answer: 1 } },
+  { id: 43, category: "コミュニケーション", text: "相手が 話し終わるまで、口を はさまずに しっかり 聞きます。", quiz: { q: "人の お話を 聞くときは？", options: ["途中で 自分の話をする", "だまって 聞く", "大声で 笑う"], answer: 1 } },
+  { id: 44, category: "コミュニケーション", text: "場所（ばしょ）に 合わせて、声の大きさを かえるように します。", quiz: { q: "図書しつでは どんな声？", options: ["大きな声", "小さな声", "叫（さけ）ぶ"], answer: 1 } },
+  { id: 45, category: "コミュニケーション", text: "友だちの「すごいな」と 思うところを 1つ さがして 言います。", quiz: { q: "友だちが 運動を がんばっていたら？", options: ["「すごいね」と言う", "「ふーん」と言う", "「ずるい」と言う"], answer: 0 } },
+  { id: 46, category: "コミュニケーション", text: "人の お話を 聞くとき、うなずきながら 聞くと 相手は 安心します。", quiz: { q: "お話を聞くとき、どうする？", options: ["ぼーっとする", "うなずく", "寝（ね）る"], answer: 1 } },
+  { id: 47, category: "コミュニケーション", text: "わからないことが あったら「教えて」と やさしく 言います。", quiz: { q: "やり方が わからない時は？", options: ["怒る", "「教えて」と聞く", "勝手に やる"], answer: 1 } },
+  { id: 48, category: "コミュニケーション", text: "さそわれたけど 行けない時は「ごめんね」と 言って ことわります。", quiz: { q: "遊びに 行けない時は？", options: ["だまって 行かない", "「行けないよ、ごめんね」と言う", "怒って ことわる"], answer: 1 } },
+  { id: 49, category: "コミュニケーション", text: "人の 話に「わりこみ」を しないように 気をつけます。", quiz: { q: "人が 話している時に 話したくなったら？", options: ["わりこむ", "終わるまで まつ", "叫（さけ）ぶ"], answer: 1 } },
+  { id: 50, category: "コミュニケーション", text: "相手が いやがる 呼びかた（あだ名など）を しません。", quiz: { q: "変なあだ名で 呼ぶのは？", options: ["仲がいいなら いい", "やってはいけない", "楽しい"], answer: 1 } },
+  { id: 51, category: "コミュニケーション", text: "返事を する時は「はい」とはっきり 言います。", quiz: { q: "名前を 呼ばれたら？", options: ["「はい」と言う", "無視（むし）する", "「なに」と言う"], answer: 0 } },
+  { id: 52, category: "コミュニケーション", text: "だれかに 会ったら、自分から 笑顔（えがお）を 見せます。", quiz: { q: "友だちと 目が 合ったら？", options: ["にらむ", "にっこり 笑う", "変な顔をする"], answer: 1 } },
+  { id: 53, category: "コミュニケーション", text: "話しかける前に「今 いいかな？」と 確認（かくにん）します。", quiz: { q: "先生が お話をしている時に 行ったら？", options: ["いきなり 話す", "終わるまで待つか 聞く", "大声で 呼ぶ"], answer: 1 } },
+  { id: 54, category: "コミュニケーション", text: "相手を 褒（ほ）める時は、具体的な 理由を 言います。", quiz: { q: "友だちを 褒めるなら？", options: ["「すごい」だけ言う", "「えが 上手だね」と理由を言う", "「ふつう」と言う"], answer: 1 } },
+  { id: 55, category: "コミュニケーション", text: "お礼（おれい）を 言うとき、相手の 顔を しっかり 見ます。", quiz: { q: "ありがとうを 言う時は？", options: ["よそ見しながら", "相手の 顔を見て", "走りながら"], answer: 1 } },
+  { id: 56, category: "コミュニケーション", text: "嫌なことを 断（ことわ）る時は「今は できません」と 伝えます。", quiz: { q: "遊びたくないのに 誘（さそ）われたら？", options: ["「いやだ！」と怒る", "「今は できないんだ」と言う", "むしをする"], answer: 1 } },
+  { id: 57, category: "コミュニケーション", text: "相談（そうだん）する時は「困（こま）っています」とはっきり 言います。", quiz: { q: "助けてほしい時は？", options: ["泣くだけ", "「助けて」とはっきり言う", "だまっている"], answer: 1 } },
+  { id: 58, category: "コミュニケーション", text: "人が お話をしている時は、手遊びを しないで 聞きます。", quiz: { q: "お話を聞く時の 手は？", options: ["おもちゃで 遊ぶ", "お膝（ひざ）におく", "机（つくえ）を 叩く"], answer: 1 } },
+  { id: 59, category: "コミュニケーション", text: "相手が 話し終わったあとに、自分の 感想（かんそう）を 言います。", quiz: { q: "お話を聞いたあとは？", options: ["自分の話に かえる", "「おもしろかったね」と言う", "だまって 立ち去る"], answer: 1 } },
+  { id: 60, category: "コミュニケーション", text: "「おはよう」「さようなら」は 基本（きほん）の あいさつです。", quiz: { q: "あいさつは 誰に する？", options: ["好きな人だけ", "みんなに", "だれにも しない"], answer: 1 } },
+
+  // --- 友だちとのルール (20 items) ---
+  { id: 61, category: "友だちとのルール", text: "物を かりる時は、かならず きょか（かして）を 取ってから 使います。", quiz: { q: "友だちの 消しゴムを 使いたい時は？", options: ["だまって 借りる", "「かして」と聞く", "勝手に 持っていく"], answer: 1 } },
+  { id: 62, category: "友だちとのルール", text: "一人で いる子が いたら「いっしょに 遊ぼう」と 声を かけます。", quiz: { q: "一人で ぽつんとしている子が いたら？", options: ["「遊ぼう」とさそう", "じろじろ見る", "わらう"], answer: 0 } },
+  { id: 63, category: "友だちとのルール", text: "友だちに ふれる時は やさしくし、たたいたり けったり しません。", quiz: { q: "友だちに さわる時の ルールは？", options: ["やさしく さわる", "ドンドン 叩く", "足を ひっかける"], answer: 0 } },
+  { id: 64, category: "友だちとのルール", text: "友だちが しっぱいしても 笑わず、おうえんします。", quiz: { q: "友だちが テストで 間違（まちが）えたら？", options: ["笑う", "「つぎ がんばろう」と言う", "ばかにする"], answer: 1 } },
+  { id: 65, category: "友だちとのルール", text: "人の 物を 勝手に さわったり、取ったり しません。", quiz: { q: "友だちの 筆箱（ふでばこ）を 見たい時は？", options: ["勝手に あける", "「見せて」と聞く", "だまって 持っていく"], answer: 1 } },
+  { id: 66, category: "友だちとのルール", text: "親や 先生など 大人が やっていたら おかしいことは、自分も しません。", quiz: { q: "大人が しないような 悪いことは？", options: ["自分も しない", "子どもなら いい", "こっそり やる"], answer: 0 } },
+  { id: 67, category: "友だちとのルール", text: "友だちの「いや」は ぜったいに やめます。", quiz: { q: "友だちが「いやだ」と言ったら？", options: ["もっと やる", "すぐに やめる", "「なんで？」と聞く"], answer: 1 } },
+  { id: 68, category: "友だちとのルール", text: "なかよく 遊ぶために、じゅんばんを 守ります。", quiz: { q: "ブランコに 乗りたい時は？", options: ["割り込む", "じゅんばんを 待つ", "人を どかす"], answer: 1 } },
+  { id: 69, category: "友だちとのルール", text: "遊びの ルールは、みんなで 守ります。", quiz: { q: "負けそうに なったら？", options: ["ルールを かえる", "最後まで ルールをまもる", "おこる"], answer: 1 } },
+  { id: 70, category: "友だちとのルール", text: "借りた 物は、壊（こわ）さないように 大切に 使います。", quiz: { q: "借りた 本を 読むときは？", options: ["ていねいに 読む", "ページを 折る", "お菓子を食べながら読む"], answer: 0 } },
+  { id: 71, category: "友だちとのルール", text: "「ありがとう」や「すごいね」と 喜（よろこ）ぶ言葉を 増やします。", quiz: { q: "どんな言葉を 言うと 仲良くなれる？", options: ["悪口", "うれしい言葉", "文句（もんく）"], answer: 1 } },
+  { id: 72, category: "友だちとのルール", text: "友だちが 困（こま）っていたら「どうしたの？」と 聞きます。", quiz: { q: "友だちが 探し物を していたら？", options: ["いっしょに 探す", "笑う", "知らんぷり"], answer: 0 } },
+  { id: 73, category: "友だちとのルール", text: "自分の 意見（いけん）だけでなく、友だちの 意見も 聞きます。", quiz: { q: "遊びを 決める時は？", options: ["自分の 好きにする", "みんなで 相談する", "泣いて 決める"], answer: 1 } },
+  { id: 74, category: "友だちとのルール", text: "なかまはずれに された子が いたら、そっと 寄り添（よ）います。", quiz: { q: "なかまはずれを 見たら？", options: ["自分も 離（はな）れる", "声を かける", "わらう"], answer: 1 } },
+  { id: 75, category: "友だちとのルール", text: "友だちの 大切な 物を けなしたり しません。", quiz: { q: "友だちの 宝（たから）物を 見せてもらったら？", options: ["「ぼろい」と言う", "「かっこいいね」と言う", "投げる"], answer: 1 } },
+  { id: 76, category: "友だちとのルール", text: "約束（やくそく）を したら、忘（わす）れないように 守ります。", quiz: { q: "約束の 時間に なったら？", options: ["遅（おく）れていく", "時間を まもる", "行かない"], answer: 1 } },
+  { id: 77, category: "友だちとのルール", text: "友だちと 仲直（なかなお）りしたい時は、自分から あやまります。", quiz: { q: "ケンカした あとは？", options: ["ずっと 怒る", "自分から「ごめんね」と言う", "相手が 来るのを待つ"], answer: 1 } },
+  { id: 78, category: "友だちとのルール", text: "貸（か）してくれた 相手に、最後も「ありがとう」と言います。", quiz: { q: "物を 返すときは？", options: ["だまって 置く", "「ありがとう」と言って返す", "投げて 返す"], answer: 1 } },
+  { id: 79, category: "友だちとのルール", text: "友だちの お話を、ばかにして 笑ったり しません。", quiz: { q: "友だちが 真面目（まじめ）に 話していたら？", options: ["笑う", "しっかり 聞く", "変な顔をする"], answer: 1 } },
+  { id: 80, category: "友だちとのルール", text: "みんなが 楽しくなるような 遊びを 考えます。", quiz: { q: "遊びを 考える時は？", options: ["自分だけ 楽しいこと", "みんなが 楽しいこと", "先生が 嫌なこと"], answer: 1 } },
+
+  // --- 学校のせいかつ (20 items) ---
+  { id: 81, category: "学校のせいかつ", text: "遊びや きゅう食など、じゅんばんを 守って 並（なら）びます。", quiz: { q: "列に ならぶ時は？", options: ["割り込みを する", "じゅんばんを まもる", "前の人を おす"], answer: 1 } },
+  { id: 82, category: "学校のせいかつ", text: "チャイムが なったら、次の 活動（かつどう）に 気持ちを 切りかえます。", quiz: { q: "休み時間が 終わる チャイムが なったら？", options: ["もっと 遊ぶ", "すぐに 切りかえて 席につく", "だらだら 歩く"], answer: 1 } },
+  { id: 83, category: "学校のせいかつ", text: "学校の 物は、みんなの 物なので ていねいに あつかいます。", quiz: { q: "学校の ほうきを 使うときは？", options: ["チャンバラをする", "そうじに 使う", "投げ捨てる"], answer: 1 } },
+  { id: 84, category: "学校のせいかつ", text: "次に 使う人の ことを 考えて、きれいに 整理（せいり）します。", quiz: { q: "トイレの スリッパは？", options: ["脱（ぬ）ぎっぱなし", "きれいに そろえる", "ける"], answer: 1 } },
+  { id: 85, category: "学校のせいかつ", text: "廊下（ろうか）は 走らず、右側を 静かに 歩きます。", quiz: { q: "廊下で 友だちを 見つけたら？", options: ["走っていく", "歩いていく", "叫（さけ）ぶ"], answer: 1 } },
+  { id: 86, category: "学校のせいかつ", text: "使った 後の 机（つくえ）や 椅子（いす）を そろえます。", quiz: { q: "帰る 時は？", options: ["椅子を 出したままにする", "椅子を しまう", "机を 倒（たお）す"], answer: 1 } },
+  { id: 87, category: "学校のせいかつ", text: "ゴミを 見つけたら、拾（ひろ）って ゴミ箱に 捨てます。", quiz: { q: "ゴミが 落ちていたら？", options: ["またぐ", "拾って 捨てる", "もっと 散（ち）らかす"], answer: 1 } },
+  { id: 88, category: "学校のせいかつ", text: "給食（きゅうしょく）の 前は、石鹸（せっけん）で 手を 洗（あら）います。", quiz: { q: "手を 洗うのは？", options: ["水だけ", "石鹸で きれいに", "洗わない"], answer: 1 } },
+  { id: 89, category: "学校のせいかつ", text: "掃除（そうじ）の 時間は、自分の 分担（ぶんたん）を 最後まで やります。", quiz: { q: "そうじの時間、サボりたくなったら？", options: ["サボる", "最後まで やる", "かくれて 遊ぶ"], answer: 1 } },
+  { id: 90, category: "学校のせいかつ", text: "靴（くつ）は 靴箱（くつばこ）に きれいに 入れます。", quiz: { q: "靴の 入れ方は？", options: ["かかとを そろえる", "つっこむ", "出しっぱなし"], answer: 0 } },
+  { id: 91, category: "学校のせいかつ", text: "忘れ物（わすれもの）を しないように、前日に 確認（かくにん）します。", quiz: { q: "宿題は いつ 確認する？", options: ["学校に 行ってから", "前の日の 夜", "やらない"], answer: 1 } },
+  { id: 92, category: "学校のせいかつ", text: "先生の お話を 聞くときは、先生の 方を見ます。", quiz: { q: "授業（じゅぎょう）中は？", options: ["外を見る", "先生を見る", "下を向く"], answer: 1 } },
+  { id: 93, category: "学校のせいかつ", text: "発表（はっぴょう）する時は、大きな声で はっきり話します。", quiz: { q: "みんなの前で 話すときは？", options: ["もごもご話す", "はっきり話す", "だまっている"], answer: 1 } },
+  { id: 94, category: "学校のせいかつ", text: "図書室（としょしつ）の本は、もとの 場所に 返（かえ）します。", quiz: { q: "本を 読み終わったら？", options: ["どこかに 置く", "もとの場所に 返す", "持って帰る"], answer: 1 } },
+  { id: 95, category: "学校のせいかつ", text: "借りた 物を 壊（こわ）したら、すぐに おしえます。", quiz: { q: "学校の 物を 壊してしまったら？", options: ["隠（かく）す", "先生に 正直に言う", "人のせいに する"], answer: 1 } },
+  { id: 96, category: "学校のせいかつ", text: "授業の 前に、トイレを 済（す）ませて おきます。", quiz: { q: "トイレは いつ行く？", options: ["授業中", "休み時間", "がまんする"], answer: 1 } },
+  // ID 97: 「名札」を「おとし物」に入れ替え
+  { id: 97, category: "学校のせいかつ", text: "おとし物を 見つけたら、自分では もらわず 先生や 大人の人に とどけます。", quiz: { q: "道や 教室（きょうしつ）で おとし物を 見つけたら？", options: ["自分で もらう", "先生や 大人に とどける", "そのままに する"], answer: 1 } },
+  { id: 98, category: "学校のせいかつ", text: "ハンカチ・ティッシュを 毎日（まいにち） 持ちます。", quiz: { q: "手を 洗ったあとは？", options: ["服で ふく", "ハンカチで ふく", "そのままにする"], answer: 1 } },
+  { id: 99, category: "学校のせいかつ", text: "自分の まわりを いつも 清潔（せいけつ）に します。", quiz: { q: "机の 中は？", options: ["ゴミだらけ", "きれいに 片（かた）づける", "ぐちゃぐちゃ"], answer: 1 } },
+  { id: 100, category: "学校のせいかつ", text: "自分も みんなも 気持ちよく 過ごせるように 工夫（くふう）します。", quiz: { q: "一番 大切なことは？", options: ["自分だけ 楽しいこと", "みんなが 笑顔になること", "おこられること"], answer: 1 } }
+];
+
+const App = () => {
+  const [view, setView] = useState('quiz'); 
+  const [currentSkill, setCurrentSkill] = useState(null);
+  const [completedSkills, setCompletedSkills] = useState([]);
+  const [stars, setStars] = useState(0);
+  const [showReward, setShowReward] = useState(false);
+  const [isWrong, setIsWrong] = useState(false);
+
+  useEffect(() => {
+    shuffleNewSkill();
+  }, []);
+
+  const shuffleNewSkill = () => {
+    const randomSkill = SKILLS_DATA[Math.floor(Math.random() * SKILLS_DATA.length)];
+    setCurrentSkill(randomSkill);
+    setShowReward(false);
+    setIsWrong(false);
+  };
+
+  const completeSkill = (id) => {
+    if (!completedSkills.includes(id)) {
+      setCompletedSkills(prev => [...prev, id]);
+      setStars(prev => prev + 10);
+    }
+    setShowReward(true);
+  };
+
+  return (
+    <div className="min-h-screen bg-sky-50 flex flex-col items-center p-4 font-sans text-gray-800">
+      {/* Header */}
+      <header className="w-full max-w-md py-4 flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <div className="bg-indigo-600 p-2 rounded-xl shadow-lg">
+            <HeartHandshake className="text-white" size={24} />
+          </div>
+          <h1 className="text-xl font-black tracking-tighter text-indigo-900">
+            みんなの<span className="text-indigo-600">ルール</span>
+          </h1>
+        </div>
+        <div className="flex items-center space-x-1 bg-white px-4 py-1.5 rounded-full shadow-sm border-2 border-yellow-200">
+          <Star className="text-yellow-500" size={20} fill="currentColor" />
+          <span className="font-black text-indigo-900 text-lg">{stars}</span>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 w-full flex flex-col items-center justify-center">
+        {view === 'quiz' && currentSkill && !showReward && (
+          <QuizMode 
+            skill={currentSkill} 
+            onCorrect={() => completeSkill(currentSkill.id)} 
+            onWrong={() => {
+              setIsWrong(true);
+              setTimeout(() => setIsWrong(false), 500);
+            }}
+            isWrong={isWrong}
+            onSkip={shuffleNewSkill}
+          />
+        )}
+
+        {showReward && (
+          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center space-y-6 animate-in zoom-in duration-300 border-t-8 border-yellow-400">
+            <div className="flex justify-center relative">
+              <Sparkles className="text-yellow-400 absolute -top-4 -left-4 animate-ping" />
+              <div className="bg-yellow-50 p-8 rounded-full">
+                <Trophy className="text-yellow-500 w-24 h-24 drop-shadow-lg" />
+              </div>
+              <Sparkles className="text-yellow-400 absolute -bottom-4 -right-4 animate-ping" />
+            </div>
+            <h2 className="text-4xl font-black text-yellow-600">大せいかい！</h2>
+            <div className="bg-indigo-50 p-4 rounded-2xl">
+              <p className="text-sm font-bold text-indigo-400 mb-1">【おぼえた ルール】</p>
+              <p className="text-lg font-bold text-gray-700 leading-relaxed">
+                {currentSkill.text}
+              </p>
+            </div>
+            <button 
+              onClick={shuffleNewSkill}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg transition-all text-xl active:scale-95"
+            >
+              つぎの もんだい
+            </button>
+          </div>
+        )}
+
+        {view === 'list' && (
+          <SkillList 
+            completedSkills={completedSkills} 
+            onBack={() => setView('quiz')} 
+          />
+        )}
+      </main>
+
+      {/* Footer Navigation */}
+      <nav className="w-full max-w-md bg-white rounded-2xl shadow-lg p-2 flex justify-around mt-6 border-b-4 border-gray-200">
+        <button 
+          onClick={() => { setView('quiz'); setShowReward(false); }}
+          className={`flex flex-col items-center p-2 rounded-xl transition-all ${view === 'quiz' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-400'}`}
+        >
+          <RotateCcw size={24} />
+          <span className="text-[10px] font-bold">クイズ</span>
+        </button>
+        <button 
+          onClick={() => setView('list')}
+          className={`flex flex-col items-center p-2 rounded-xl transition-all ${view === 'list' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-400'}`}
+        >
+          <BookOpen size={24} />
+          <span className="text-[10px] font-bold">ずかん（{completedSkills.length}/100）</span>
+        </button>
+      </nav>
+    </div>
+  );
+};
+
+const QuizMode = ({ skill, onCorrect, onWrong, isWrong, onSkip }) => {
+  const [selected, setSelected] = useState(null);
+
+  useEffect(() => {
+    setSelected(null);
+  }, [skill]);
+
+  const handleSelect = (index) => {
+    setSelected(index);
+    if (index === skill.quiz.answer) {
+      onCorrect();
+    } else {
+      onWrong();
+    }
+  };
+
+  const getCategoryColor = (cat) => {
+    if (cat === "ぜったいだめなこと") return "bg-red-500 text-white";
+    if (cat === "心のコントロール") return "bg-blue-500 text-white";
+    if (cat === "コミュニケーション") return "bg-green-500 text-white";
+    if (cat === "友だちとのルール") return "bg-yellow-500 text-white";
+    return "bg-orange-500 text-white";
+  };
+
+  return (
+    <div className={`bg-white p-6 rounded-3xl shadow-xl max-w-md w-full flex flex-col items-center animate-in slide-in-from-bottom duration-500 border-b-8 border-gray-200 ${isWrong ? 'animate-shake' : ''}`}>
+      <div className={`px-4 py-1 rounded-full text-xs font-bold mb-4 ${getCategoryColor(skill.category)} shadow-sm`}>
+        {skill.category}
+      </div>
+
+      <div className="mb-6">
+        <SkillIllustration category={skill.category} />
+      </div>
+
+      <div className="w-full bg-indigo-50 p-5 rounded-2xl mb-6 border-2 border-indigo-100 min-h-[100px] flex items-center justify-center">
+        <h3 className="text-xl font-black text-center leading-relaxed text-indigo-900">
+          {skill.quiz.q}
+        </h3>
+      </div>
+
+      <div className="w-full space-y-4">
+        {skill.quiz.options.map((option, i) => (
+          <button
+            key={i}
+            onClick={() => handleSelect(i)}
+            className={`w-full p-4 rounded-2xl font-black text-left transition-all border-4 flex justify-between items-center text-lg shadow-sm ${
+              selected === i 
+                ? (i === skill.quiz.answer ? 'border-green-500 bg-green-50 text-green-700' : 'border-red-500 bg-red-50 text-red-700')
+                : 'border-gray-50 bg-gray-50 hover:border-indigo-200 active:translate-y-1'
+            }`}
+          >
+            <span className="flex-1">{option}</span>
+            {selected === i && i !== skill.quiz.answer && <XCircle className="text-red-500" />}
+          </button>
+        ))}
+      </div>
+
+      <button 
+        onClick={onSkip}
+        className="mt-6 text-gray-400 font-bold text-sm hover:text-indigo-500 transition-all flex items-center"
+      >
+        <RotateCcw size={14} className="mr-1" /> ちがう もんだいへ
+      </button>
+      
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-10px); }
+          75% { transform: translateX(10px); }
+        }
+        .animate-shake { animation: shake 0.2s ease-in-out 0s 2; }
+      `}</style>
+    </div>
+  );
+};
+
+const SkillList = ({ completedSkills, onBack }) => (
+  <div className="w-full max-w-md space-y-4 pb-10">
+    <div className="flex items-center justify-between mb-4 sticky top-0 bg-sky-50 py-2 z-10">
+      <button onClick={onBack} className="text-gray-600 flex items-center font-bold">
+        <ChevronLeft size={20} /> もどる
+      </button>
+      <h2 className="text-xl font-black">スキルずかん</h2>
+      <div className="w-8 text-indigo-600 font-bold">{completedSkills.length}/100</div>
+    </div>
+    
+    <div className="grid grid-cols-1 gap-3 px-1 overflow-y-auto max-h-[65vh] pr-2">
+      {SKILLS_DATA.map((skill) => (
+        <div 
+          key={skill.id}
+          className={`p-4 rounded-2xl border-2 transition-all shadow-sm flex items-center space-x-3 ${
+            completedSkills.includes(skill.id) 
+              ? 'bg-white border-green-400' 
+              : 'bg-white/40 border-gray-200 opacity-60'
+          }`}
+        >
+          <div className={`p-2 rounded-lg flex-shrink-0 ${completedSkills.includes(skill.id) ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+             {skill.category === "ぜったいだめなこと" ? <ShieldAlert size={20}/> : <Smile size={20}/>}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`text-[10px] font-bold ${completedSkills.includes(skill.id) ? 'text-green-600' : 'text-gray-400'}`}>
+              {skill.category}
+            </p>
+            <p className={`text-sm font-bold leading-relaxed truncate ${completedSkills.includes(skill.id) ? 'text-gray-800' : 'text-gray-400'}`}>
+              {skill.text}
+            </p>
+          </div>
+          {completedSkills.includes(skill.id) && <Award size={20} className="text-yellow-500" />}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+export default App;
